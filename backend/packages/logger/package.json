@@ -1,0 +1,22 @@
+{
+  "name": "@video-analytics/logger",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@nestjs/config": "^4.0.4",
+    "nestjs-pino": "^4.6.1",
+    "pino-http": "^10.3.0"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^11.0.0"
+  },
+  "devDependencies": {
+    "pino-pretty": "^11.2.2",
+    "typescript": "^5.9.3"
+  }
+}

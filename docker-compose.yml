@@ -1,0 +1,91 @@
+name: video-analytics-platform
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-video_analytics}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - video-analytics-network
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - video-analytics-network
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      LOG_LEVEL: debug
+      CORS_ORIGIN: '*'
+      # Override DATABASE_URL in your root .env to point at Supabase (or any
+      # external Postgres) instead of the local `postgres` service above.
+      # Note: overriding this does not change POSTGRES_USER/PASSWORD/DB,
+      # which only configure the local `postgres` service's own container.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/video_analytics?schema=public}
+      REDIS_URL: redis://redis:6379
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-dev-only-insecure-secret-change-me-before-deploying}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN_DAYS: ${JWT_REFRESH_EXPIRES_IN_DAYS:-7}
+      BCRYPT_SALT_ROUNDS: ${BCRYPT_SALT_ROUNDS:-12}
+      CAMERA_CREDENTIALS_ENCRYPTION_KEY: ${CAMERA_CREDENTIALS_ENCRYPTION_KEY:-Wgt+6YWaq8BhPCGWc7QqrgPhsBMYU4mvahqWER+c13I=}
+      CAMERA_HEALTH_POLL_CONCURRENCY: ${CAMERA_HEALTH_POLL_CONCURRENCY:-5}
+    ports:
+      - '${API_PORT:-3000}:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - video-analytics-network
+
+  ai-service:
+    build:
+      context: backend/apps/ai-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      ENV: development
+      LOG_LEVEL: DEBUG
+      PORT: 8000
+      ALLOWED_ORIGINS: '*'
+    ports:
+      - '${AI_SERVICE_PORT:-8000}:8000'
+    networks:
+      - video-analytics-network
+
+networks:
+  video-analytics-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
