@@ -37,3 +37,6 @@ Thumbs.db
 
 # Local recordings/live-stream storage (backend/apps/api STORAGE_DIR)
 backend/apps/api/storage/
+
+# Gait demo runtime data — model weights, enrolled gallery, generated demo videos
+backend/apps/ai-service/data/

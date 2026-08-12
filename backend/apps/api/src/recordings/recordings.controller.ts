@@ -6,6 +6,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  NotFoundException,
   Param,
   ParseUUIDPipe,
   Post,
@@ -78,7 +79,20 @@ export class RecordingsController {
   ): Promise<void> {
     const recording = await this.recordingsService.findById(id);
     const filePath = this.recordingsService.filePath(recording);
-    const { size } = await stat(filePath);
+    let size: number;
+    try {
+      ({ size } = await stat(filePath));
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        // The DB row's file is missing from this host's storage volume —
+        // e.g. it was uploaded to a different environment/container whose
+        // volume isn't the one currently mounted. Distinct from a genuinely
+        // unknown recording id (404 on findById above), but the same status
+        // code is the right client-facing signal either way.
+        throw new NotFoundException('This recording has no video file on this server');
+      }
+      throw error;
+    }
 
     const range = req.headers.range;
     const match = typeof range === 'string' ? RANGE_PATTERN.exec(range) : null;

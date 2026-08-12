@@ -130,10 +130,11 @@ Each requirement has an ID, a one-line statement, and a status tag: `[Done]`, `[
 |---|---|---|
 | FR-AI-01 | AI detection is invoked through a stable platform-defined contract (input: frame + camera/zone context; output: normalized detections with class, confidence, bounding box). Detector implementations are swappable without changing any caller. | Planned |
 | FR-AI-02 | Ship with Person, Vehicle, and Animal detectors (Ultralytics YOLO backed) at launch. | Planned |
-| FR-AI-03 | The plugin architecture must support adding, without platform changes: Face Recognition, License Plate Recognition, PPE Detection, Fire/Smoke Detection, Fall Detection, Fight Detection, Weapon Detection, Crowd Detection, Abandoned Object, Tailgating, Intrusion, Line Crossing, Loitering, Parking Violations, Speed Estimation. | Planned |
+| FR-AI-03 | The plugin architecture must support adding, without platform changes: Face Recognition, Gait Recognition, License Plate Recognition, PPE Detection, Fire/Smoke Detection, Fall Detection, Fight Detection, Weapon Detection, Crowd Detection, Abandoned Object, Tailgating, Intrusion, Line Crossing, Loitering, Parking Violations, Speed Estimation. | Planned |
 | FR-AI-04 | A model registry tracks installed detectors, their version, and which are enabled per Organization/Zone. | Planned |
 | FR-AI-05 | Inference runs on GPU where available with CPU fallback; batch inference across multiple camera streams sharing a model instance. | Planned |
 | FR-AI-06 | ONNX Runtime execution path (in addition to native PyTorch) for portability and inference-speed options; TensorRT-ready for NVIDIA deployments. | Planned |
+| FR-AI-07 | Gait Recognition identifies/re-identifies a person by walking pattern from a sequence of tracked frames (not a single frame), for cases where face is occluded or not camera-facing. Subject to the same biometric consent model as Face Recognition (§15 Open Questions). | Planned |
 
 ### 3.6 Tracking (FR-TRACK)
 
@@ -142,6 +143,8 @@ Each requirement has an ID, a one-line statement, and a status tag: `[Done]`, `[
 | FR-TRACK-01 | Assign a stable track ID to a detected object across frames within a camera stream. | Planned |
 | FR-TRACK-02 | Tracking algorithm is swappable behind a common interface: ByteTrack (default), DeepSORT, OC-SORT. | Planned |
 | FR-TRACK-03 | Entry/exit counting per zone derived from track transitions across a zone boundary. | Planned |
+
+A demo-scale, non-swappable YOLOv8 + DeepSORT instance (`ai-service`'s `app/detection/`) already exists to feed the Gait and suspicious-activity demos real per-clip tracks — see `docs/HLD.md` §5. It doesn't satisfy FR-TRACK-02 (no swappable interface, DeepSORT only) or FR-TRACK-03 (no zone entry/exit logic), so the rows above stay `Planned`.
 
 ### 3.7 Event Engine (FR-EVT)
 
@@ -258,7 +261,7 @@ OWASP ASVS-aligned. Encryption in transit (TLS 1.2+) everywhere. Encryption at r
 
 ### 4.4 Privacy & Compliance Readiness
 
-Biometric-adjacent features (Face Recognition, License Plate Recognition) must be **opt-in per Organization** and flagged distinctly in audit logs, in anticipation of jurisdiction-specific biometric consent laws (e.g. US state biometric privacy statutes). Deployment must support region-pinned storage to accommodate EU data-residency expectations and Middle East customer requirements. This document does not assert legal compliance — it specifies the technical capabilities (consent flags, region pinning, data export/erasure hooks) a compliance program would need.
+Biometric-adjacent features (Face Recognition, Gait Recognition, License Plate Recognition) must be **opt-in per Organization** and flagged distinctly in audit logs, in anticipation of jurisdiction-specific biometric consent laws (e.g. US state biometric privacy statutes). Deployment must support region-pinned storage to accommodate EU data-residency expectations and Middle East customer requirements. This document does not assert legal compliance — it specifies the technical capabilities (consent flags, region pinning, data export/erasure hooks) a compliance program would need.
 
 ### 4.5 Scalability & Extensibility
 

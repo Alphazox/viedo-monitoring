@@ -59,6 +59,12 @@ services:
       CAMERA_HEALTH_POLL_CONCURRENCY: ${CAMERA_HEALTH_POLL_CONCURRENCY:-5}
     ports:
       - '${API_PORT:-3000}:3000'
+    volumes:
+      # Without this, uploaded recordings and live-stream HLS output live
+      # only in the container's writable layer — gone on every rebuild, and
+      # any pre-existing `recording`/`camera` DB rows point at files that
+      # simply don't exist in the new container (stream endpoint 500s).
+      - api_storage:/workspace/storage
     depends_on:
       postgres:
         condition: service_healthy
@@ -79,6 +85,10 @@ services:
       ALLOWED_ORIGINS: '*'
     ports:
       - '${AI_SERVICE_PORT:-8000}:8000'
+    volumes:
+      # Gait gallery enrollments and generated demo clips otherwise live only
+      # in the container's writable layer and vanish on every rebuild.
+      - ai_service_data:/app/data
     networks:
       - video-analytics-network
 
@@ -89,3 +99,5 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+  api_storage:
+  ai_service_data:

@@ -10,6 +10,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: '/cameras', label: 'Cameras', permission: 'cameras:read' },
   { href: '/camera-groups', label: 'Camera Groups', permission: 'camera-groups:read' },
   { href: '/recordings', label: 'Recordings', permission: 'recordings:read' },
+  { href: '/gait-demo', label: 'AI Detection Demo' },
   { href: '/locations', label: 'Locations', permission: 'sites:read' },
   { href: '/users', label: 'Users', permission: 'users:read' },
   { href: '/roles', label: 'Roles', permission: 'roles:read' },

@@ -1,5 +1,20 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
 pydantic==2.9.2
 pydantic-settings==2.5.2
 python-json-logger==2.0.7
+python-multipart==0.0.9
+numpy==2.4.6
+opencv-python-headless==4.10.0.84
+torch==2.13.0+cpu
+torchvision==0.28.0+cpu
+
+# Person detection + tracking for app/detection/ (feeds gait + activity).
+# Both pull in opencv-python (GUI build) as a transitive dependency, which
+# fights opencv-python-headless for the same cv2 install path — the
+# Dockerfile force-reinstalls opencv-python-headless after this file to make
+# sure headless wins (see Dockerfile comment).
+ultralytics==8.4.115
+deep-sort-realtime==1.3.2

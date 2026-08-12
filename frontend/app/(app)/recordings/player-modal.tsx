@@ -13,7 +13,17 @@ export function PlayerModal({ recording, onClose }: { recording: Recording; onCl
 
   useEffect(() => {
     let cancelled = false;
-    ensureFreshAccessToken()
+    (async () => {
+      await ensureFreshAccessToken();
+      // A plain <video src> failure (missing file, wrong codec, etc.) just
+      // renders a permanently black frame with no visible error — check the
+      // URL up front so a broken recording says why instead of looking hung.
+      const res = await fetch(recordingsApi.streamUrl(recording.id), { method: 'HEAD' });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new ApiError(res.status, body?.message || `Couldn't load this video (HTTP ${res.status}).`);
+      }
+    })()
       .then(() => {
         if (!cancelled) setReady(true);
       })
@@ -23,7 +33,7 @@ export function PlayerModal({ recording, onClose }: { recording: Recording; onCl
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [recording.id]);
 
   return (
     <Modal title={recording.title} onClose={onClose} widthClassName="max-w-2xl">

@@ -3,6 +3,8 @@ node_modules
 dist
 **/dist
 coverage
+*.tsbuildinfo
+**/*.tsbuildinfo
 .git
 .github
 *.md

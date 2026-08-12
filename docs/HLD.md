@@ -207,7 +207,7 @@ graph LR
         Person["PersonDetector (YOLO)"]
         Vehicle["VehicleDetector (YOLO)"]
         Animal["AnimalDetector (YOLO)"]
-        Future["Face / LPR / PPE / Fire /<br/>Fall / Fight / Weapon / Crowd /<br/>Abandoned Object / Tailgating /<br/>Intrusion / Line Crossing /<br/>Loitering / Parking / Speed<br/>(added later, same interface)"]
+        Future["Face / Gait / LPR / PPE / Fire /<br/>Fall / Fight / Weapon / Crowd /<br/>Abandoned Object / Tailgating /<br/>Intrusion / Line Crossing /<br/>Loitering / Parking / Speed<br/>(added later, same interface)"]
         Tracker["TrackerPlugin interface<br/>update(detections) -> Track[]"]
         ByteTrack["ByteTrack (default)"]
         DeepSORT["DeepSORT"]
@@ -229,6 +229,8 @@ graph LR
 - `DetectorPlugin` and `TrackerPlugin` are the two stable contracts. A detector is enabled per-Organization/Zone via configuration in Postgres, read by `ai-service` at inference time — no code deploy needed to turn a detector on/off for a tenant.
 - New detectors register their model artifact location (S3), input/output spec, and resource profile (CPU/GPU, expected latency) in the Model Registry table; the inference scheduler uses that profile for batching and GPU allocation.
 - Execution backend (PyTorch native, ONNX Runtime, TensorRT) is an implementation detail of a given detector plugin, not something the platform core is aware of.
+- Gait Recognition is sequence-based, not single-frame: it consumes a `Track`'s accumulated frame history from `TrackerPlugin` rather than one `frame` like Person/Vehicle/Face detectors. It still implements `DetectorPlugin`, but its `context` carries the track's buffered silhouette/pose sequence — the contract's `frame` argument is a single representative frame for logging/thumbnailing only. This is a plugin-level detail, not a platform-core change.
+- A demo-scale instance of this `PersonDetector` → `TrackerPlugin` chain (real pretrained YOLOv8 + DeepSORT, via `deep-sort-realtime`) now exists standalone in `ai-service` (`app/detection/`), feeding both the Gait and suspicious-activity demos with real per-clip tracks instead of raw background subtraction. It's in-process only — no Postgres-backed per-Organization/Zone enable/disable, no Model Registry entry, no GPU batching scheduler — so it doesn't change FR-TRACK's `Planned` status below; same convention as the Gait demo itself against FR-AI-07.
 
 ---
 
@@ -363,6 +365,6 @@ The original 10-phase backend plan is superseded by this HLD's larger module set
 
 ## 15. Open Questions for Product/Legal (not blocking Phase 3)
 
-- Biometric feature consent model (Face Recognition, LPR) — needs product/legal input before FR-AI-03's face/LPR detectors ship, not before Phase 3.
+- Biometric feature consent model (Face Recognition, Gait Recognition, LPR) — needs product/legal input before FR-AI-03's face/gait/LPR detectors ship, not before Phase 3.
 - Region-pinning requirements for specific target markets (EU, Middle East) — affects storage/deployment topology choices in the DevOps phase, not the application code now.
 - Platform Owner cross-tenant support tooling (FR-ORG-05) — deferred; not required for single-tenant-per-deployment customers, only for the SaaS multi-tenant offering.
