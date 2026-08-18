@@ -1,42 +1,59 @@
-# Dependencies
+# Node
 node_modules/
-.venv/
-venv/
-
-# Build output
-dist/
-build/
-coverage/
-*.tsbuildinfo
-
-# Environment files
-.env
-.env.local
-*.env.*.local
-
-# Logs
-*.log
+.next/
+out/
 npm-debug.log*
 
 # Python
 __pycache__/
 *.pyc
+.venv/
+venv/
+*.egg-info/
 .pytest_cache/
+.mypy_cache/
 .ruff_cache/
 
-# OS
+# Env
+.env
+.env.*.local
+!.env.example
+!*/.env.example
+
+# Local-machine-specific compose overrides (e.g. networking workarounds),
+# never committed — see docker-compose.yml for the shared, real config.
+docker-compose.override.yml
+
+# Storage (dev-local media, never committed)
+storage/uploads/*
+storage/media/**/*
+storage/demo-videos/*
+storage/ai-engine/**/*
+!storage/uploads/.gitkeep
+!storage/media/**/.gitkeep
+!storage/demo-videos/.gitkeep
+!storage/ai-engine/.gitkeep
+
+# Local ai-engine data volume (gait gallery, alerts, YOLO weights, demo
+# samples) used when running the container with a bind mount outside
+# docker-compose — dev-local only, never committed.
+ai-engine-data/
+
+# AI model weights (fetched at build/runtime, not committed)
+*.pt
+*.onnx
+!.gitkeep
+
+# Editors / OS
+.vscode/
+.idea/
 .DS_Store
 Thumbs.db
 
-# IDE
-.vscode/
-.idea/
+# Alembic local sqlite (if ever used for quick tests)
+*.sqlite3
 
-# Docker
-*.pid
-
-# Local recordings/live-stream storage (backend/apps/api STORAGE_DIR)
-backend/apps/api/storage/
-
-# Gait demo runtime data — model weights, enrolled gallery, generated demo videos
-backend/apps/ai-service/data/
+# Coverage
+.coverage
+htmlcov/
+coverage.xml

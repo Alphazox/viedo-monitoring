@@ -1,46 +1,42 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { clsx } from '@/lib/clsx';
+import { useEffect, useRef, type ReactNode } from "react";
 
-export function Reveal({
-  children,
-  className,
-  delay = 0,
-}: {
-  children: React.ReactNode;
+interface RevealProps {
+  children: ReactNode;
   className?: string;
-  delay?: number;
-}) {
+}
+
+export function Reveal({ children, className }: RevealProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.disconnect();
-        }
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced || !("IntersectionObserver" in window)) {
+      el.classList.add("in-view");
+      return;
+    }
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            el.classList.add("in-view");
+            io.unobserve(el);
+          }
+        });
       },
-      { threshold: 0.15 },
+      { threshold: 0.12 },
     );
-    observer.observe(el);
-    return () => observer.disconnect();
+    io.observe(el);
+    return () => io.disconnect();
   }, []);
 
   return (
-    <div
-      ref={ref}
-      style={{ transitionDelay: `${delay}ms` }}
-      className={clsx(
-        'transition-all duration-700 ease-out',
-        visible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0',
-        className,
-      )}
-    >
+    <div ref={ref} className={`reveal${className ? ` ${className}` : ""}`}>
       {children}
     </div>
   );
