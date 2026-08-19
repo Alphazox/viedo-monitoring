@@ -6,13 +6,27 @@ deployment. See ../../../.env.example for the full list of variables.
 """
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    @model_validator(mode="before")
+    @classmethod
+    def _blank_env_vars_fall_back_to_defaults(cls, data: Any) -> Any:
+        """Some deployment platforms (observed on Vercel) create an
+        environment variable entry for every declared setting but leave
+        unfilled ones as an empty string rather than omitting them --
+        pydantic then tries to parse "" as an int/float/bool/enum and
+        crashes the whole app at import time. Treat a blank value the same
+        as an absent one so it falls back to the field's default instead."""
+        if isinstance(data, dict):
+            return {key: value for key, value in data.items() if not (isinstance(value, str) and value.strip() == "")}
+        return data
 
     ENV: Literal["development", "test", "production"] = "development"
     LOG_LEVEL: str = "INFO"
