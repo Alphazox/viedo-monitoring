@@ -1,3 +1,33 @@
+[project]
+name = "aegisvision-backend"
+version = "0.1.0"
+requires-python = ">=3.11,<3.12"
+# Kept in sync with requirements.txt by hand (Docker/CI install from that
+# file via pip; Vercel's Python runtime needs this [project] table and
+# resolves/locks with uv instead) -- update both when changing a dependency.
+dependencies = [
+    "fastapi==0.115.6",
+    "uvicorn[standard]==0.34.0",
+    "python-multipart==0.0.20",
+    "email-validator==2.2.0",
+    "pydantic==2.10.4",
+    "pydantic-settings==2.7.1",
+    "sqlalchemy==2.0.36",
+    "alembic==1.14.0",
+    "psycopg[binary]==3.2.3",
+    "pgvector==0.3.6",
+    "redis==5.2.1",
+    "rq==2.1.0",
+    "argon2-cffi==23.1.0",
+    "pyjwt==2.10.1",
+    "boto3==1.35.90",
+    "anthropic==0.42.0",
+    "openai==1.59.3",
+    "httpx==0.28.1",
+    "python-dotenv==1.0.1",
+    "structlog==24.4.0",
+]
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
